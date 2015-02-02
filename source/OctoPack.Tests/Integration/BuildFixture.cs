@@ -81,6 +81,7 @@ DotNetFrameworkArchitecture.Bitness64);
 
             if (result != 0)
             {
+                Trace.WriteLine("MSBuild returned a non-zero exit code: " + result + Environment.NewLine + allOutput);
                 Assert.Fail("MSBuild returned a non-zero exit code: " + result);
             }
 
