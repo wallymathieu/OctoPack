@@ -12,11 +12,18 @@ namespace OctoPack.Tasks.Util
         {
             var doc = XDocument.Parse(packagesConfig);
             var packages = doc.Element("packages");
-            return packages.Elements("package").Select(elem => 
+            return packages.Elements("package").Select(elem =>
                 new Package(
                     elem.Attribute("id").Value,
-                    version: elem.Attribute("version").Value,
-                    targetFramework: elem.Attribute("targetFramework").Value));
+                    version: GetAttributeValueOrNull(elem, "version"),
+                    targetFramework: GetAttributeValueOrNull(elem, "targetFramework"),
+                    developmentDependency: "true".Equals(GetAttributeValueOrNull(elem, "developmentDependency"))));
+        }
+
+        private static string GetAttributeValueOrNull(XElement elem, string name)
+        {
+            var attribute = elem.Attribute(name);
+            return attribute != null ? attribute.Value : null;
         }
     }
 }

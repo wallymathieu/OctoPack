@@ -59,7 +59,7 @@
   <ItemGroup>
     <Compile Include="Integration\BuildFixture.cs" />
     <Compile Include="Integration\SampleSolutionBuildFixture.cs" />
-    <Compile Include="Tasks\PackagesDependencies.cs" />
+    <Compile Include="Util\PackagesDependencies.cs" />
     <Compile Include="Util\ZipPackageExtensions.cs" />
     <Compile Include="Tasks\OctopusPhysicalFileSystemTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

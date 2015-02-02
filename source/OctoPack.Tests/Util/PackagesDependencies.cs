@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using OctoPack.Tasks.Util;
 using System.Linq;
-namespace OctoPack.Tests.Tasks
+namespace OctoPack.Tests.Util
 {
     [TestFixture]
     public class PackagesDependencies
@@ -21,10 +21,20 @@ namespace OctoPack.Tests.Tasks
 <packages>
   <package id=""Newtonsoft.Json"" version=""6.0.8"" targetFramework=""net40"" />
 </packages>";
-            Assert.AreEqual(new Package("Newtonsoft.Json", version: "6.0.8", targetFramework: "net40"), 
+            Assert.AreEqual(new Package("Newtonsoft.Json", version: "6.0.8", targetFramework: "net40", developmentDependency: false), 
                 _sut.GetPackages(_packages_config).Single());
         }
 
+        [Test]
+        public void Packages_GetIsDevelopmentDependency()
+        {
+            var _packages_config = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<packages>
+  <package id=""Newtonsoft.Json"" version=""6.0.8"" targetFramework=""net40"" developmentDependency=""true"" />
+</packages>";
+            Assert.AreEqual(new Package("Newtonsoft.Json", version: "6.0.8", targetFramework: "net40", developmentDependency: true),
+                _sut.GetPackages(_packages_config).Single());
+        }
 
         [Test]
         public void Packages_GetsIdVersionAndFramework()
@@ -38,11 +48,11 @@ namespace OctoPack.Tests.Tasks
   <package id=""Newtonsoft.Json"" version=""6.0.8"" targetFramework=""net40"" />
 </packages>";
             Assert.AreEqual(new[] {
-                    new Package("Nancy", version: "0.23.2", targetFramework: "net40"),
-                    new Package("Nancy.Hosting.Self", version: "0.23.2", targetFramework: "net40"),
-                    new Package("Nancy.Serialization.JsonNet", version: "0.23.2", targetFramework: "net40"),
-                    new Package("Nancy.ViewEngines.Veil", version: "0.3.0", targetFramework: "net40"),
-                    new Package("Newtonsoft.Json", version: "6.0.8", targetFramework: "net40")
+                    new Package("Nancy", version: "0.23.2", targetFramework: "net40", developmentDependency: false),
+                    new Package("Nancy.Hosting.Self", version: "0.23.2", targetFramework: "net40", developmentDependency: false),
+                    new Package("Nancy.Serialization.JsonNet", version: "0.23.2", targetFramework: "net40", developmentDependency: false),
+                    new Package("Nancy.ViewEngines.Veil", version: "0.3.0", targetFramework: "net40", developmentDependency: false),
+                    new Package("Newtonsoft.Json", version: "6.0.8", targetFramework: "net40", developmentDependency: false)
             }, _sut.GetPackages(_packages_config).ToArray());
         }
     }

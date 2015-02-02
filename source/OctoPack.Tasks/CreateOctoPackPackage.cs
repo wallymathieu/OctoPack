@@ -128,6 +128,13 @@ namespace OctoPack.Tasks
         /// </summary>
         public bool IgnoreNonRootScripts { get; set; }
 
+        /// <summary>
+        /// Whether to reference the packages used in package.config in the new nuget package.
+        /// </summary>
+        public bool ReferencesFromPackagesConfig { get; set; }
+
+        public string PackagesConfigFile { get; set; }
+
         public override bool Execute()
         {
             try
@@ -147,6 +154,7 @@ namespace OctoPack.Tasks
 
                 UpdatePackageIdWithAppendValue(specFile);
                 AddReleaseNotes(specFile);
+                UpdateWithReferencesFromPackagesConfig(specFile);
 
                 OutDir = fileSystem.GetFullPath(OutDir);
 
@@ -472,6 +480,53 @@ namespace OctoPack.Tasks
 
                     LogMessage("Added file: " + destinationPath, MessageImportance.Normal);
                 }
+            }
+        }
+
+        private void UpdateWithReferencesFromPackagesConfig(XContainer nuSpec)
+        {
+            if (!ReferencesFromPackagesConfig)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(PackagesConfigFile))
+            {
+                PackagesConfigFile = Path.Combine(ProjectDirectory, "packages.config");
+            }
+
+            if (!fileSystem.FileExists(PackagesConfigFile))
+            {
+                LogWarning("OCTPAC", string.Format("The packages config file: {0} does not exist or could not be found. Package references will not be added to the package.", PackagesConfigFile));
+                return;
+            }
+            var referencedPackages = new PackagesConfig().GetPackages(fileSystem.ReadFile(PackagesConfigFile));
+            if (referencedPackages == null || !referencedPackages.Any())
+            {
+                LogWarning("OCTPAC", string.Format("The packages config file: {0} does not contain any packages.", PackagesConfigFile));
+                return;
+            }
+
+            var package = nuSpec.ElementAnyNamespace("package");
+            if (package == null) throw new Exception("The NuSpec file does not contain a <package> XML element. The NuSpec file appears to be invalid.");
+
+            var metadata = package.ElementAnyNamespace("metadata");
+            if (metadata == null) throw new Exception(string.Format("The NuSpec file does not contain a <metadata> XML element. The NuSpec file appears to be invalid."));
+
+            var dependencies = metadata.ElementAnyNamespace("dependencies");
+            if (dependencies == null)
+            {
+                dependencies = new XElement("dependencies");
+                metadata.Add(dependencies);
+            }
+            foreach (var referencedPackage in referencedPackages)
+            {
+                var dependency = new XElement("dependency",
+                    new XAttribute("id", referencedPackage.Id));
+                if (!string.IsNullOrWhiteSpace(referencedPackage.Version))
+                    dependency.Add(new XAttribute("version", referencedPackage.Version));
+                dependencies.Add(dependency);
+                LogMessage("Adding dependency: " + referencedPackage.Id, importance: MessageImportance.Normal);
             }
         }
 
